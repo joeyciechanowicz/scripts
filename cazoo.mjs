@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import axios from "axios";
 import { JSDOM } from "jsdom";
 import fs from "fs";

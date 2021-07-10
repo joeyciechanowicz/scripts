@@ -1,12 +1,7 @@
 #!/usr/bin/env node
 
 import axios from "axios";
-import { JSDOM } from "jsdom";
-import fs from "fs";
 import { queue } from "async";
-
-const queryName = "less-than-20k-suv-estate";
-const scrapePrefix = "./scrapes/cinch-";
 
 const search = (pageNumber) =>
   `https://search.api.cinch.co.uk/vehicles?bodyType=estate%2Csuv&colour=&doors=&fromEngineSize=-1&fromPrice=-1&fromYear=-1&fuelType=&make=&mileage=-1&pageNumber=${pageNumber}&pageSize=60&seats=&selectedModel=&sortingCriteria=1&toEngineSize=-1&toPrice=20000&toYear=-1&transmissionType=auto&useMonthly=false&variant=`;
@@ -36,23 +31,8 @@ while (
   i++;
 }
 
-await fs.promises.writeFile(
-  `${scrapePrefix}${queryName}-cars.json`,
-  JSON.stringify(cars, null, "\t")
-);
-
 if (response.status !== 200) {
   console.log("Response was not 200", response);
-}
-
-function writeFastest(car, acceleration) {
-  console.log(`Fetched ${count}/${cars.length}`);
-  count++;
-
-  if (acceleration < fastest) {
-    console.log(`Fastest is ${acceleration} - ${carDesc(car)}`);
-    fastest = acceleration;
-  }
 }
 
 const q = queue(async (car) => {
@@ -80,7 +60,7 @@ const q = queue(async (car) => {
     price: `£${carResponse.data.price}`,
     id: viewUrl(car.make, car.selectedModel, car.vehicleId),
   });
-  writeFastest(car, acceleration);
+  console.log(`Fetched ${count++}/${cars.length}`);
 }, 10);
 
 q.push(cars);
@@ -92,11 +72,6 @@ q.error((e) => {
 await q.drain();
 
 console.log(`Writing speeds ${speeds.length} to file`);
-
-await fs.promises.writeFile(
-  `${scrapePrefix}${queryName}-acceleration.json`,
-  JSON.stringify(speeds)
-);
 
 console.table(
   speeds

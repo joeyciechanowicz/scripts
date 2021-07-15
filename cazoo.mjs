@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
+import { queue } from "async";
 import axios from "axios";
 import { JSDOM } from "jsdom";
-import { queue } from "async";
+import fs from "fs";
 
 const query =
   "bodyType=SUV%2CEstate&chosenPriceType=total&gearbox=Automatic&maxPrice=20000&ownershipType=purchase&runningCosts=ulezChargeExempt&minPrice=5000&sort=price-asc&pageSize=48";
@@ -25,7 +26,7 @@ let count = 0;
 
 while ((response = await axios.get(search(i))).data.results.length > 0) {
   cars.push(...response.data.results);
-  console.log(`Fetched page ${i}`);
+  process.stdout.write(`\rFetched page ${i}`);
   i++;
 }
 
@@ -53,16 +54,35 @@ const q = queue(async (car) => {
     price: car.pricing.fullPrice.value,
     id: `https://www.cazoo.co.uk/car-details/${car.id}/`,
   });
-  console.log(`Fetched ${count++}/${cars.length}`);
+  process.stdout.write(`\rFetched ${count++}/${cars.length}`);
 }, 10);
 
 q.push(cars);
 
 await q.drain();
 
+await fs.promises.writeFile("./scrapes/cazoo.json", JSON.stringify(speeds));
+
+console.log("\nTop 15 fastest cars");
 console.table(
   speeds
     .filter((x) => x.acceleration)
     .sort((a, b) => a.acceleration - b.acceleration)
-    .slice(0, 30)
+    .slice(0, 15)
+    .reduce((acc, { id, ...x }) => {
+      acc[id] = x;
+      return acc;
+    }, {})
+);
+
+console.log("Cheapest cars with acceleration less than 8.2");
+console.table(
+  speeds
+    .filter((x) => x.acceleration && x.acceleration < 8.2)
+    .sort((a, b) => a.price - b.price)
+    .slice(0, 15)
+    .reduce((acc, { id, ...x }) => {
+      acc[id] = x;
+      return acc;
+    }, {})
 );

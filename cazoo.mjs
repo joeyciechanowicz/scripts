@@ -6,7 +6,7 @@ import { JSDOM } from "jsdom";
 import fs from "fs";
 
 const query =
-  "bodyType=SUV%2CEstate&chosenPriceType=total&gearbox=Automatic&maxPrice=20000&ownershipType=purchase&runningCosts=ulezChargeExempt&minPrice=5000&sort=price-asc&pageSize=48";
+  "bodyType=SUV%2CEstate&chosenPriceType=total&gearbox=Automatic&maxPrice=15000&ownershipType=purchase&runningCosts=ulezChargeExempt&minPrice=5000&sort=price-asc&pageSize=48";
 
 function search(page) {
   return `https://www.cazoo.co.uk/api/search?${query}&page=${page}`;
@@ -48,9 +48,16 @@ const q = queue(async (car) => {
       .textContent.replace(" seconds", "")
   );
 
+  const bootSpace = Number(
+    dom.window.document
+      .querySelector('[data-test-id="Boot space (seats-up)"] dd')
+      .textContent.replace(" litres", "")
+  );
+
   speeds.push({
     makeModel: carDesc(car),
     acceleration,
+    bootSpace,
     price: car.pricing.fullPrice.value,
     id: `https://www.cazoo.co.uk/car-details/${car.id}/`,
   });

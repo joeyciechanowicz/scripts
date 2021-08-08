@@ -1,0 +1,4 @@
+#!/bin/bash
+
+./cinch.mjs
+./cazoo.mjs

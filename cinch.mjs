@@ -5,7 +5,7 @@ import { queue } from "async";
 import fs from "fs";
 
 const search = (pageNumber) =>
-  `https://search.api.cinch.co.uk/vehicles?bodyType=estate%2Csuv&colour=&doors=&fromEngineSize=-1&fromPrice=-1&fromYear=-1&fuelType=&make=&mileage=-1&pageNumber=${pageNumber}&pageSize=60&seats=&selectedModel=&sortingCriteria=1&toEngineSize=-1&toPrice=20000&toYear=-1&transmissionType=auto&useMonthly=false&variant=`;
+  `https://search.api.cinch.co.uk/vehicles?bodyType=estate%2Csuv&colour=&doors=&fromEngineSize=-1&fromPrice=-1&fromYear=-1&fuelType=&make=&mileage=-1&pageNumber=${pageNumber}&pageSize=60&seats=&selectedModel=&sortingCriteria=1&toEngineSize=-1&toPrice=15000&toYear=-1&transmissionType=auto&useMonthly=false&variant=`;
 const carUrl = (carId) => `https://product.api.cinch.co.uk/vehicles/${carId}`;
 const viewUrl = (make, selectedModel, vehicleId) =>
   `https://www.cinch.co.uk/used-cars/${encodeURIComponent(
@@ -20,6 +20,21 @@ let cars = [];
 let response;
 let i = 1;
 let count = 0;
+
+const trycatch = (cb, car) => {
+  try {
+    return cb();
+  } catch (e) {
+    console.log(
+      `Failed to get boot space for car ${viewUrl(
+        car.make,
+        car.selectedModel,
+        car.vehicleId
+      )}\n`
+    );
+    return 0;
+  }
+};
 
 while (
   (response = await axios.get(search(i))).data.vehicleListings.length > 0
@@ -43,20 +58,30 @@ const q = queue(async (car) => {
     return;
   }
 
-  const perfData = carResponse.data.techData.filter(
-    (x) => x.category === "Performance"
-  )[0].items;
-
   const acceleration = Number(
-    perfData.filter(
-      (x) =>
-        x.label === "0 to 62 mph (secs)" || x.label === "0 to 60 mph (secs)"
-    )[0].value
+    carResponse.data.techData
+      .filter((x) => x.category === "Performance")[0]
+      .items.filter(
+        (x) =>
+          x.label === "0 to 62 mph (secs)" || x.label === "0 to 60 mph (secs)"
+      )[0].value
+  );
+
+  const bootSpace = trycatch(
+    () =>
+      Number(
+        carResponse.data.techData
+          .filter((x) => x.category === "Weight and Capacities")[0]
+          .items.filter((x) => x.label === "Luggage Capacity (Seats Up)")[0]
+          .value
+      ),
+    car
   );
 
   speeds.push({
     makeModel: carDesc(car).substr(0, 50),
     acceleration,
+    bootSpace,
     price: `£${carResponse.data.price}`,
     id: viewUrl(car.make, car.selectedModel, car.vehicleId),
   });

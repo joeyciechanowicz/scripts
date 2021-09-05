@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
-import axios from "axios";
 import { queue } from "async";
+import axios from "axios";
 import fs from "fs";
+import { maxPrice } from "./constants.mjs";
 
 const search = (pageNumber) =>
-  `https://search.api.cinch.co.uk/vehicles?bodyType=estate%2Csuv&colour=&doors=&fromEngineSize=-1&fromPrice=-1&fromYear=-1&fuelType=&make=&mileage=-1&pageNumber=${pageNumber}&pageSize=60&seats=&selectedModel=&sortingCriteria=1&toEngineSize=-1&toPrice=15000&toYear=-1&transmissionType=auto&useMonthly=false&variant=`;
+  `https://search.api.cinch.co.uk/vehicles?bodyType=estate%2Csuv&colour=&doors=&fromEngineSize=-1&fromPrice=-1&fromYear=-1&fuelType=&make=&mileage=-1&pageNumber=${pageNumber}&pageSize=60&seats=&selectedModel=&sortingCriteria=1&toEngineSize=-1&toPrice=${maxPrice}&toYear=-1&transmissionType=auto&useMonthly=false&variant=`;
 const carUrl = (carId) => `https://product.api.cinch.co.uk/vehicles/${carId}`;
 const viewUrl = (make, selectedModel, vehicleId) =>
   `https://www.cinch.co.uk/used-cars/${encodeURIComponent(
@@ -111,6 +112,7 @@ console.table(
 );
 
 console.log("Cheapest cars with acceleration less than 8.2");
+
 console.table(
   speeds
     .filter((x) => x.acceleration && x.acceleration < 8.2)

@@ -2,11 +2,11 @@
 
 import { queue } from "async";
 import axios from "axios";
-import { JSDOM } from "jsdom";
 import fs from "fs";
+import { JSDOM } from "jsdom";
+import { maxPrice } from "./constants.mjs";
 
-const query =
-  "bodyType=SUV%2CEstate&chosenPriceType=total&gearbox=Automatic&maxPrice=15000&ownershipType=purchase&runningCosts=ulezChargeExempt&minPrice=5000&sort=price-asc&pageSize=48";
+const query = `bodyType=SUV%2CEstate&chosenPriceType=total&gearbox=Automatic&maxPrice=${maxPrice}&ownershipType=purchase&runningCosts=ulezChargeExempt&minPrice=5000&sort=price-asc&pageSize=48`;
 
 function search(page) {
   return `https://www.cazoo.co.uk/api/search?${query}&page=${page}`;
